@@ -1,0 +1,14 @@
+{
+  "name": "avto-backup-bot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PostgreSQL uchun mustaqil kunlik backup boti (docker exec pg_dump -> gzip -> S3/MinIO)",
+  "main": "src/backup.js",
+  "scripts": {
+    "backup": "node src/backup.js --once"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.633.0",
+    "dotenv": "^16.4.5"
+  }
+}

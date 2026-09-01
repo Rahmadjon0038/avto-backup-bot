@@ -1,0 +1,14 @@
+services:
+  backup-bot:
+    build: .
+    container_name: avto-backup-bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      # Faqat postgres16 konteyneriga "docker exec" qilish uchun kerak.
+      # Bu bot postgres16'ni yaratmaydi/o'chirmaydi/restart qilmaydi - faqat
+      # "docker exec postgres16 pg_dump ..." buyrug'ini yuboradi.
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Log fayllari host'da saqlanishi uchun (ixtiyoriy, konteyner o'chsa ham loglar qoladi)
+      - ./logs:/app/logs
