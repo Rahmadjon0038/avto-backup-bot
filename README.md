@@ -19,7 +19,7 @@ docker-compose konfiguratsiyasiga tegmaydi.
 3. Fayl S3/MinIO'dagi `S3_BUCKET` bucket'iga `backups/lms_<baza>_<sana_vaqt>.sql.gz`
    nomi bilan yuklanadi.
 4. Yuklangandan so'ng vaqtinchalik fayl darhol diskdan o'chiriladi.
-5. `RETENTION_DAYS`dan eski backup fayllar bucket'dan avtomatik o'chiriladi.
+5. Har safar `RETENTION_COUNT`dan ortiq backup to'planib qolsa, eng eskilari bucket'dan avtomatik o'chiriladi (har doim faqat so'nggi `RETENTION_COUNT` ta saqlanadi).
 6. Har bir urinish haqida konsolga (`docker logs`) va (ixtiyoriy) `LOG_FILE`ga
    log yoziladi.
 
@@ -89,7 +89,7 @@ docker logs -f avto-backup-bot
 | `S3_SECRET_KEY` | - | S3/MinIO secret key (majburiy) |
 | `S3_BUCKET` | - | Bucket nomi (majburiy, oldindan mavjud bo'lishi kerak) |
 | `S3_REGION` | `us-east-1` | AWS region (MinIO buni e'tiborsiz qoldiradi) |
-| `RETENTION_DAYS` | `30` | Shu kundan eski backuplar bucket'dan o'chiriladi |
+| `RETENTION_COUNT` | `2` | Har doim faqat so'nggi shuncha ta backup saqlanadi, qolganlari o'chiriladi |
 | `BACKUP_SCHEDULE` | `0 23 * * *` | Cron ifodasi |
 | `TZ` | `Asia/Tashkent` | Cron va loglar uchun vaqt zonasi |
 | `DB_CONTAINER_NAME` | `postgres16` | Backup qilinadigan Postgres konteyner nomi |

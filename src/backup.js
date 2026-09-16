@@ -15,7 +15,7 @@ const config = {
   dbName: process.env.DB_NAME || 'lms',
   dbUser: process.env.DB_USER || 'postgres',
   dbPassword: process.env.DB_PASSWORD || '',
-  retentionDays: parseInt(process.env.RETENTION_DAYS || '30', 10),
+  retentionCount: parseInt(process.env.RETENTION_COUNT || '2', 10),
   bucket: process.env.S3_BUCKET,
 };
 
@@ -132,9 +132,9 @@ async function run() {
 
     logger.info(`Backup muvaffaqiyatli yakunlandi: ${s3Key} (${sizeMb} MB, ${durationSec}s)`);
 
-    const deletedCount = await cleanupOldBackups(config.retentionDays);
+    const deletedCount = await cleanupOldBackups(config.retentionCount);
     if (deletedCount > 0) {
-      logger.info(`Retention tozalash: ${deletedCount} ta eski backup o'chirildi (${config.retentionDays} kundan eski)`);
+      logger.info(`Retention tozalash: ${deletedCount} ta eski backup o'chirildi (faqat so'nggi ${config.retentionCount} ta saqlanadi)`);
     }
 
     await notifyBackupSuccess({ s3Key, sizeMb, durationSec });

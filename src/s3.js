@@ -68,30 +68,40 @@ async function uploadFile(localPath, key) {
   }
 }
 
-async function cleanupOldBackups(retentionDays) {
+async function listAllBackups() {
   const bucket = process.env.S3_BUCKET;
-  const cutoff = Date.now() - retentionDays * 24 * 60 * 60 * 1000;
-  let deletedCount = 0;
+  const objects = [];
   let continuationToken;
 
+  do {
+    const resp = await getClient().send(new ListObjectsV2Command({
+      Bucket: bucket,
+      Prefix: BACKUP_PREFIX,
+      ContinuationToken: continuationToken,
+    }));
+
+    objects.push(...(resp.Contents || []));
+    continuationToken = resp.IsTruncated ? resp.NextContinuationToken : undefined;
+  } while (continuationToken);
+
+  return objects;
+}
+
+// Har doim faqat eng so'nggi `retentionCount` ta backupni saqlaydi - sanadan
+// qat'iy nazar, undan ortiqcha (eskiroq) fayllarni o'chiradi.
+async function cleanupOldBackups(retentionCount) {
+  const bucket = process.env.S3_BUCKET;
+  let deletedCount = 0;
+
   try {
-    do {
-      const resp = await getClient().send(new ListObjectsV2Command({
-        Bucket: bucket,
-        Prefix: BACKUP_PREFIX,
-        ContinuationToken: continuationToken,
-      }));
+    const objects = await listAllBackups();
+    objects.sort((a, b) => (b.LastModified?.getTime() || 0) - (a.LastModified?.getTime() || 0));
 
-      const objects = resp.Contents || [];
-      for (const obj of objects) {
-        if (obj.LastModified && obj.LastModified.getTime() < cutoff) {
-          await getClient().send(new DeleteObjectCommand({ Bucket: bucket, Key: obj.Key }));
-          deletedCount += 1;
-        }
-      }
-
-      continuationToken = resp.IsTruncated ? resp.NextContinuationToken : undefined;
-    } while (continuationToken);
+    const toDelete = objects.slice(Math.max(retentionCount, 0));
+    for (const obj of toDelete) {
+      await getClient().send(new DeleteObjectCommand({ Bucket: bucket, Key: obj.Key }));
+      deletedCount += 1;
+    }
   } catch (err) {
     // Retention tozalashdagi xato butun backup jarayonini muvaffaqiyatsiz qilmasin -
     // dump S3'ga allaqachon muvaffaqiyatli yuklangan bo'ladi.
